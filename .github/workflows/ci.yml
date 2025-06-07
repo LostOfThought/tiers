@@ -1,0 +1,106 @@
+name: CI and Release Pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*" # Trigger on tags like v1.0.0
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    name: Build, Test, and Package
+    runs-on: ubuntu-latest
+    outputs:
+      # These outputs are for the 'release' job to consume
+      RELEASE_ARTIFACT_NAME: ${{ steps.package_script_step.outputs.MOD_ZIP_NAME }}
+      RELEASE_ARTIFACT_PATH: ${{ steps.package_script_step.outputs.MOD_ZIP_PATH_ON_RUNNER }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Needed for tag-based operations and changelog generation
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # == CI Path (Non-Tags: PRs and pushes to main) ==
+      - name: Build and Package (CI / Non-Release)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: pnpm vite-node tools/package-mod.ts --ci-build
+
+      # == Release Path (Tags only) ==
+      - name: Build, Package, and Prepare Release Assets (Release Mode for Tag)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        id: package_script_step # ID for referencing outputs
+        run: pnpm vite-node tools/package-mod.ts --ci-build
+        # The --ci-build flag tells package-mod.ts to use the current version
+        # (from package.json, which should match the tag) and not perform git operations.
+        # It will handle all steps: version check, clean, build, info.json, changelog.txt, assets, zip.
+        # It will also output MOD_ZIP_NAME and MOD_ZIP_PATH_ON_RUNNER via ::set-output.
+
+      - name: Format Changelog for GitHub Release Notes (Release Mode)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: pnpm run release:github-changelog # This creates dist/changelog.md from dist/changelog.txt
+
+      # Upload artifacts for the 'release' job (only on tags)
+      - name: Upload Mod Zip Artifact (Release Mode)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.package_script_step.outputs.MOD_ZIP_NAME }} # Dynamic name from package_script_step
+          path: ${{ steps.package_script_step.outputs.MOD_ZIP_PATH_ON_RUNNER }}
+          retention-days: 1
+
+      - name: Upload GitHub Changelog.md Artifact (Release Mode)
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: github-changelog-for-release # Fixed name for this artifact bundle
+          path: dist/changelog.md # Path from release:github-changelog script
+          retention-days: 1
+
+  release:
+    name: Create GitHub Release
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Mod Zip Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build_and_test.outputs.RELEASE_ARTIFACT_NAME }}
+          # This will download the file (e.g., mod-v1.0.0.zip) to the current working directory.
+
+      - name: Download GitHub Changelog.md Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-changelog-for-release
+          # This will download changelog.md to the current working directory.
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          bodyFile: changelog.md # Path to the downloaded changelog file
+          artifacts: ${{ needs.build_and_test.outputs.RELEASE_ARTIFACT_NAME }} # The name of the downloaded .zip file
+          artifactContentType: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
