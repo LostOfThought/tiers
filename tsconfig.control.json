@@ -2,10 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": ["lua-types/5.2", "typed-factorio/runtime"],
-    "rootDir": "./src/control"
+    "paths": {
+      "@shared/*": ["./src/shared"],
+      "@control/*": ["./src/control"], 
+    }
   },
   "include": [
-    "./src/control/**/*.ts"
+    "./src/control/**/*.ts",
+    "./src/shared/**/*.ts"
   ],
-  "exclude": [],
+  "exclude": [
+    "./src/data",
+    "./src/settings"
+  ],
 } 

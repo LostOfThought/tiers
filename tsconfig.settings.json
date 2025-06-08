@@ -2,10 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": ["lua-types/5.2", "typed-factorio/settings"],
-    "rootDir": "./src/settings"
+    "paths": {
+      "@shared/*": ["./src/shared"],
+      "@setting/*": ["./src/settings"],
+    }
   },
   "include": [
     "./src/settings/**/*.ts",
+    "./src/shared/**/*.ts"
   ],
-  "exclude": [],
+  "exclude": [
+    "./src/data",
+    "./src/control"
+  ],
 } 

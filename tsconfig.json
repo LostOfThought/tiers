@@ -11,11 +11,12 @@
     "exactOptionalPropertyTypes": true,
     "declaration": false,
     "rootDir": "./src",
+    "baseUrl": "./src",
     "types": ["lua-types/5.2"],
     "noErrorTruncation": true,
     "verbatimModuleSyntax": true,
     "noImplicitAny": true,
-    "strictPropertyInitialization": true,
+    "strictPropertyInitialization": true
   },
   "tstl": {
     "buildMode": "library",

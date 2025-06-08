@@ -2,10 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": ["lua-types/5.2", "typed-factorio/prototype"],
-    "rootDir": "./src/data"
+    "paths": {
+      "@shared/*": ["./src/shared/*"],
+      "@data/*": ["./src/data/*"]
+    }
   },
   "include": [
     "./src/data/**/*.ts",
+    "./src/shared/**/*.ts"
   ],
-  "exclude": [],
-} 
+  "exclude": [
+    "./src/control",
+    "./src/settings"
+  ],
+}
