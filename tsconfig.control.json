@@ -5,8 +5,8 @@
     "rootDir": "./src",
     "baseUrl": "./src",
     "paths": {
-      "@shared/*": ["./src/shared"],
-      "@control/*": ["./src/control"], 
+      "@shared/*": ["shared"],
+      "@control/*": ["control"], 
     }
   },
   "include": [
