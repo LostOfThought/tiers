@@ -124,13 +124,13 @@ async function main() {
     logSummary('--- Build Directory Prepared ---');
 
     startSection('--- 3. Building Lua Files (compiling TypeScript) ---');
-    console.log(`Executing: pnpm run build:all`);
-    const buildResult = spawnSync('pnpm', ['run', 'build:all'], { stdio: 'inherit', shell: false });
+    console.log(`Executing: pnpm run build`);
+    const buildResult = spawnSync('pnpm', ['run', 'build'], { stdio: 'inherit', shell: false });
     if (buildResult.error) {
       throw buildResult.error;
     }
     if (buildResult.status !== 0) {
-      throw new Error(`'pnpm run build:all' failed with status ${buildResult.status}`);
+      throw new Error(`'pnpm run build' failed with status ${buildResult.status}`);
     }
     logSummary('--- Lua Compilation Complete ---');
 
