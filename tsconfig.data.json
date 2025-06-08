@@ -2,6 +2,8 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "types": ["lua-types/5.2", "typed-factorio/prototype"],
+    "rootDir": "./src",
+    "baseUrl": "./src",
     "paths": {
       "@shared/*": ["./src/shared/*"],
       "@data/*": ["./src/data/*"]

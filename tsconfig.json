@@ -35,7 +35,7 @@
     "noResolvePaths": []
   },
   "include": [
-    "./src/**/*.ts"
+    "./src/shared/*.ts"
   ],
   "exclude": [
     "./src/settings",
