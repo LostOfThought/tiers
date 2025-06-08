@@ -18,7 +18,8 @@
     "strictPropertyInitialization": true
   },
   "include": [
-    "./eslint.config.ts"
+    "./eslint.config.ts",
+    "./eslint-custom-rules/**/*.ts"
   ],
   "exclude": [
     "node_modules"

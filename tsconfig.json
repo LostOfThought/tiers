@@ -12,7 +12,18 @@
     "declaration": false,
     "rootDir": "./src",
     "baseUrl": "./src",
-    "types": ["lua-types/5.2"],
+    "types": [
+      "lua-types/5.2",
+      "typed-factorio/settings",
+      "typed-factorio/prototype",
+      "typed-factorio/runtime"
+    ],
+    "paths": {
+      "@shared/*": ["shared/*"],
+      "@data/*": ["data/*"],
+      "@control/*": ["control/*"],
+      "@settings/*": ["settings/*"]
+    },
     "noErrorTruncation": true,
     "verbatimModuleSyntax": true,
     "noImplicitAny": true,
@@ -35,11 +46,7 @@
     "noResolvePaths": []
   },
   "include": [
-    "./src/shared/*.ts"
-  ],
-  "exclude": [
-    "./src/settings",
-    "./src/data",
-    "./src/control"
+    "./src/**/*.ts",
+    "./scaffold/**/*.ts"
   ]
 }

@@ -2,7 +2,9 @@
 // eslint-disable jsdoc/no-missing-syntax, jsdoc/require-file-overview -- Know config file
 import brettz9Plugin from '@brettz9/eslint-plugin';
 import eslintCommentsPlugin from '@eslint-community/eslint-plugin-eslint-comments';
+import properArrowsPlugin from '@getify/eslint-plugin-proper-arrows';
 import stylistic from '@stylistic/eslint-plugin';
+import arrayFuncPlugin from 'eslint-plugin-array-func';
 import codeCompletePlugin from 'eslint-plugin-code-complete';
 import deMorganPlugin from 'eslint-plugin-de-morgan';
 import dependPlugin from 'eslint-plugin-depend';
@@ -28,16 +30,16 @@ import writeGoodCommentsPlugin from 'eslint-plugin-write-good-comments';
 import globalsImport from 'globals';
 import tseslint from 'typescript-eslint';
 
-/*
- * IMPORTANT: Remove the following TODOs when completed
- * TODO [>=1]: eslint-plugin-es-x
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#practices-and-specific-es-features
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#security
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#style
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#testing-tools
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#globals
- * TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#tools
- */
+import banTypesInStage from './eslint-custom-rules/ban-types-in-stage';
+
+// IMPORTANT: Remove the following TODOs when completed
+// TODO [>=1]: eslint-plugin-es-x
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#practices-and-specific-es-features
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#security
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#style
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#testing-tools
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#globals
+// TODO [>=1]: https://github.com/dustinspecker/awesome-eslint?tab=readme-ov-file#tools
 
 import type { ESLint } from 'eslint';
 import type { ReadonlyDeep } from 'type-fest';
@@ -51,43 +53,41 @@ type GlobalsInterface = Readonly<{
   node?: Readonly<Record<string, boolean>>;
 }>;
 
-/*
- * 'etc/no-assign-mutated-array': 'error',
- * 'etc/no-commented-out-code': 'error',
- * 'etc/no-const-enum': 'error',
- * 'etc/no-deprecated': [
- *   "error",
- *   {
- *     "ignored": {
- *       "^SomeName$": "name",
- *       "node_modules/some-path": "path"
- *     }
- *   }
- * ],
- * 'etc/no-enum': 'error',
- * 'etc/no-implicit-any-catch': [
- *   "error",
- *   { "allowExplicitAny": false }
- * ],
- * 'etc/no-internal': [
- *   "error",
- *   {
- *     "ignored": {
- *       "node_modules/some-path": "path",
- *       "^SomeName$": "name"
- *     }
- *   }
- * ],
- * 'etc/no-misused-generics': 'error',
- * "etc/no-t": [
- *   "error",
- *   { "prefix": "" }
- * ],
- * 'etc/prefer-interface': 'off', // Heck no
- * 'etc/prefer-less-than': 'error',
- * 'etc/throw-error': 'error',
- * 'etc/underscore-internal': 'error',
- */
+// 'etc/no-assign-mutated-array': 'error',
+// 'etc/no-commented-out-code': 'error',
+// 'etc/no-const-enum': 'error',
+// 'etc/no-deprecated': [
+//   "error",
+//   {
+//     "ignored": {
+//       "^SomeName$": "name",
+//       "node_modules/some-path": "path"
+//     }
+//   }
+// ],
+// 'etc/no-enum': 'error',
+// 'etc/no-implicit-any-catch': [
+//   "error",
+//   { "allowExplicitAny": false }
+// ],
+// 'etc/no-internal': [
+//   "error",
+//   {
+//     "ignored": {
+//       "node_modules/some-path": "path",
+//       "^SomeName$": "name"
+//     }
+//   }
+// ],
+// 'etc/no-misused-generics': 'error',
+// "etc/no-t": [
+//   "error",
+//   { "prefix": "" }
+// ],
+// 'etc/prefer-interface': 'off', // Heck no
+// 'etc/prefer-less-than': 'error',
+// 'etc/throw-error': 'error',
+// 'etc/underscore-internal': 'error',
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Yes, I know what I'm doing
 const asReadOnlyDeep = <T>(object: T): ReadonlyDeep<T> => object as ReadonlyDeep<T>;
@@ -98,7 +98,7 @@ const asPlugin = (object: unknown): ReadonlyDeep<ESLint.Plugin> => object as ESL
 const globals: Readonly<GlobalsInterface> = globalsImport;
 
 const baseRules = asReadOnlyDeep({
-  // eslint-disable-next-line unicorn/no-useless-spread -- Keep these together because they aren't prefixed
+
   ...{
     'accessor-pairs': 'error',
     'array-callback-return': ['error', {
@@ -107,7 +107,7 @@ const baseRules = asReadOnlyDeep({
     }],
     'block-scoped-var': 'error',
     'camelcase': ['error', { properties: 'always' }],
-    'capitalized-comments': ['error', 'always', { ignoreConsecutiveComments: false }],
+    'capitalized-comments': ['off', 'always', { ignoreConsecutiveComments: true }],
     'class-methods-use-this': 'off', // Superceded by @typescript-eslint/class-methods-use-this
     'complexity': ['error', 10],
     'consistent-return': 'off', // Superceded by @typescript-eslint/consistent-return
@@ -165,9 +165,6 @@ const baseRules = asReadOnlyDeep({
     'no-eq-null': 'error',
     'no-eval': 'error',
     'no-extend-native': 'error',
-    'no-extra-bind': 'error',
-    'no-extra-label': 'error',
-    'no-implicit-coercion': 'error',
     'no-implicit-globals': 'error',
     'no-implied-eval': 'off', // Superceded by @typescript-eslint/no-implied-eval
     'no-inline-comments': 'off',
@@ -211,6 +208,7 @@ const baseRules = asReadOnlyDeep({
     'no-shadow': 'off', // Superceded by @typescript-eslint/no-shadow
     'no-template-curly-in-string': 'error',
     'no-ternary': 'error',
+    // eslint-disable-next-line write-good-comments/write-good-comments -- Name of the rule
     'no-throw-literal': 'off', // Superceded by @typescript-eslint/only-throw-error
     'no-undef-init': 'error',
     'no-undefined': 'error',
@@ -268,7 +266,7 @@ const baseRules = asReadOnlyDeep({
     'symbol-description': 'error',
     'vars-on-top': 'error',
     'yoda': ['error', 'never'],
-  },
+  } as const,
   '@brettz9/arrow-parens': ['off'], // Superceded by @stylistic/arrow-parens
   '@brettz9/block-scoped-var': ['off'], // Superceded by core eslint
   '@brettz9/no-instanceof-array': ['off'], // Superceded unicorn/no-instanceof-array
@@ -287,6 +285,23 @@ const baseRules = asReadOnlyDeep({
   '@eslint-community/eslint-comments/no-unused-enable': 'error',
   '@eslint-community/eslint-comments/no-use': 'off',
   '@eslint-community/eslint-comments/require-description': 'error',
+  // '@getify/proper-arrows/params': ['error', { // TypeError: context.getScope is not a function
+  //   allowed: ['error', '_'],
+  //   count: 3,
+  //   length: 0,
+  //   trivial: true,
+  //   unused: 'all',
+  // }],
+  '@getify/proper-arrows/name': ['error', { trivial: false }],
+  '@getify/proper-arrows/return': ['error', {
+    chained: true,
+    object: true,
+    sequence: true,
+    ternary: 0,
+    trivial: false,
+  }],
+  '@getify/proper-arrows/where': 'off', // No restrictions on placement
+  // '@getify/proper-arrows/this': ['error', "never"], // TypeError: context.getScope is not a function
   '@stylistic/array-bracket-newline': ['error', 'consistent'],
   '@stylistic/array-bracket-spacing': ['error', 'never'],
   '@stylistic/array-element-newline': ['error', 'consistent'],
@@ -389,13 +404,13 @@ const baseRules = asReadOnlyDeep({
     after: true,
     before: true,
   }],
-  '@stylistic/line-comment-position': ['error', {
+  '@stylistic/line-comment-position': ['off', {
     applyDefaultIgnorePatterns: true,
     ignorePattern: '@ts-expect-error',
     position: 'beside',
   }],
   '@stylistic/linebreak-style': ['error', 'unix'],
-  '@stylistic/lines-around-comment': ['error', {
+  '@stylistic/lines-around-comment': ['off', {
     afterBlockComment: false,
     afterLineComment: false,
     beforeBlockComment: true,
@@ -430,7 +445,7 @@ const baseRules = asReadOnlyDeep({
       delimiter: 'semi',
     },
   }],
-  '@stylistic/multiline-comment-style': ['error', 'starred-block'],
+  '@stylistic/multiline-comment-style': ['error', 'separate-lines'],
   '@stylistic/multiline-ternary': ['error', 'always-multiline'],
   '@stylistic/new-parens': 'error',
   '@stylistic/newline-per-chained-call': ['error', { ignoreChainWithDepth: 2 }],
@@ -745,6 +760,12 @@ const baseRules = asReadOnlyDeep({
   '@typescript-eslint/unbound-method': 'error',
   '@typescript-eslint/unified-signatures': 'error',
   '@typescript-eslint/use-unknown-in-catch-callback-variable': 'error',
+  'array-func/avoid-reverse': 'error',
+  'array-func/from-map': 'error',
+  'array-func/no-unnecessary-this-arg': 'error',
+  'array-func/prefer-array-from': 'error',
+  'array-func/prefer-flat': 'error',
+  'array-func/prefer-flat-map': 'error',
   'code-complete/enforce-meaningful-names': ['error', {
     allowedNames: ['_'],
     disallowedNames: ['tmp', 'foo', 'bar', 'baz'],
@@ -832,7 +853,7 @@ const baseRules = asReadOnlyDeep({
     },
   ],
   'import-x/consistent-type-specifier-style': ['error', 'prefer-top-level'],
-  'import-x/dynamic-import-chunkname': ['off', { // BUG: Appears to be broken
+  'import-x/dynamic-import-chunkname': ['off', { // BUG: This feature has a bug
     allowEmpty: false,
     importFunctions: ['import'],
     webpackChunknameFormat: '[a-zA-Z0-9-/_]+',
@@ -853,7 +874,7 @@ const baseRules = asReadOnlyDeep({
   'import-x/no-cycle': 'error',
   'import-x/no-default-export': 'error',
   'import-x/no-deprecated': 'error',
-  'import-x/no-duplicates': 'off', // I want this on, but it triggers for type only imports as well
+  'import-x/no-duplicates': 'off', // I want this on, but it triggers for type imports as well
   'import-x/no-dynamic-require': 'error',
   'import-x/no-empty-named-blocks': 'error',
   'import-x/no-extraneous-dependencies': [
@@ -945,7 +966,7 @@ const baseRules = asReadOnlyDeep({
   'jsdoc/no-blank-block-descriptions': 'error',
   'jsdoc/no-blank-blocks': 'error',
   'jsdoc/no-defaults': 'error',
-  'jsdoc/no-missing-syntax': ['off', { contexts: ['any'] }], // Fix eventually
+  'jsdoc/no-missing-syntax': ['off', { contexts: ['any'] }], // Fix later
   'jsdoc/no-multi-asterisks': 'error',
   'jsdoc/no-restricted-syntax': 'error',
   'jsdoc/no-types': 'error',
@@ -954,7 +975,7 @@ const baseRules = asReadOnlyDeep({
   'jsdoc/require-description': 'error',
   'jsdoc/require-description-complete-sentence': 'error',
   'jsdoc/require-example': 'error',
-  'jsdoc/require-file-overview': 'off', // Fix eventually
+  'jsdoc/require-file-overview': 'off', // Fix later
   'jsdoc/require-hyphen-before-param-description': 'error',
   'jsdoc/require-jsdoc': 'error',
   'jsdoc/require-param': 'error',
@@ -1039,17 +1060,17 @@ const baseRules = asReadOnlyDeep({
   'misc/no-unnecessary-break': 'error',
   'misc/no-unnecessary-initialization': 'error',
   'misc/no-unnecessary-template-literal': 'error',
-  'misc/object-format': 'off', // TODO [>=1]: Figure out where this can be done better
+  'misc/object-format': 'off', // TODO [>=1]: Find a better place for this configuration
   'misc/only-export-name': 'error',
   'misc/prefer-arrow-function-property': 'error',
-  'misc/prefer-const-require': 'off', // ESM only
+  'misc/prefer-const-require': 'off', // Using ESM module system
   'misc/prefer-only-export': 'off',
   'misc/require-jsdoc': 'off', // Have a whole plugin for this
   'misc/require-syntax': 'off',
   'misc/restrict-identifier-characters': 'error',
   'misc/sort-array': 'off',
   'misc/sort-call-signature': 'error',
-  'misc/sort-class-members': ['off', { // Might have a better way to do this
+  'misc/sort-class-members': ['off', { // Consider a better implementation approach
     sortingOrder: [
       'static-field',
       'static-method',
@@ -1130,7 +1151,7 @@ const baseRules = asReadOnlyDeep({
   'perfectionist/sort-exports': 'error',
   'perfectionist/sort-imports': 'off', // Let import-x handle this
   'perfectionist/sort-interfaces': 'error',
-  'perfectionist/sort-intersection-types': 'error',
+  'perfectionist/sort-intersection-types': 'off', // Superceded by @typescript-eslint/sort-type-constituents
   'perfectionist/sort-jsx-props': 'error',
   'perfectionist/sort-maps': 'error',
   'perfectionist/sort-named-exports': 'error',
@@ -1152,7 +1173,7 @@ const baseRules = asReadOnlyDeep({
   ],
   'perfectionist/sort-sets': 'error',
   'perfectionist/sort-switch-case': 'error',
-  'perfectionist/sort-union-types': 'error',
+  'perfectionist/sort-union-types': 'off', // Superceded by @typescript-eslint/sort-type-constituents
   'perfectionist/sort-variable-declarations': 'error',
   'prefer-arrow/prefer-arrow-functions': ['error', {
     // eslint-disable-next-line unicorn/no-keyword-prefix -- Config option
@@ -1426,19 +1447,19 @@ const baseRules = asReadOnlyDeep({
     },
   ],
   'write-good-comments/write-good-comments': [
-    'warn', // Changed from 'error' to 'warn'
+    'warn',
     {
       adverb: true,
       cliches: true,
-      eprime: false, // Disabled - too strict for technical comments
+      eprime: false,
       illusion: true,
-      passive: false, // Disabled - passive voice is often appropriate in technical docs
+      passive: true,
       // eslint-disable-next-line code-complete/enforce-meaningful-names -- Api argument
       so: true,
       thereIs: true,
       tooWordy: true,
       weasel: true,
-      whitelist: ['read-only', 'be done', 'be broken'], // Added common technical phrases
+      whitelist: ['read-only'],
     },
   ],
 } as const);
@@ -1446,7 +1467,9 @@ const baseRules = asReadOnlyDeep({
 const basePlugins = asReadOnlyDeep({
   '@brettz9': brettz9Plugin,
   '@eslint-community/eslint-comments': asPlugin(eslintCommentsPlugin),
+  '@getify/proper-arrows': asPlugin(properArrowsPlugin),
   '@stylistic': stylistic,
+  'array-func': asPlugin(arrayFuncPlugin),
   'code-complete': codeCompletePlugin,
   'de-morgan': asPlugin(deMorganPlugin),
   'depend': dependPlugin,
@@ -1514,58 +1537,9 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
 
   ...tseslint.configs.strictTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
-  {
-    files: ['src/control/**/*.ts'],
-    languageOptions: {
-      globals: { ...globals.es2025 },
-      parser: tseslint.parser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        project: './tsconfig.control.json',
-        sourceType: 'module',
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    // @ts-expect-error -- Not assignable, but it's fine
-    rules: baseRules,
-    settings: baseSettings,
-  },
-
-  {
-    files: ['src/data/**/*.ts'],
-    languageOptions: {
-      globals: { ...globals.es2025 },
-      parser: tseslint.parser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        project: './tsconfig.data.json',
-        sourceType: 'module',
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: baseRules,
-    settings: baseSettings,
-  },
-
-  {
-    files: ['src/settings/**/*.ts'],
-    languageOptions: {
-      globals: { ...globals.es2025 },
-      parser: tseslint.parser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        project: './tsconfig.settings.json',
-        sourceType: 'module',
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    rules: baseRules,
-    settings: baseSettings,
-  },
 
   {
     files: ['src/**/*.ts'],
-    ignores: ['src/control/**/*', 'src/data/**/*', 'src/settings/**/*'],
     languageOptions: {
       globals: { ...globals.es2025 },
       parser: tseslint.parser,
@@ -1576,16 +1550,128 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
         tsconfigRootDir: import.meta.dirname,
       },
     },
+    plugins: basePlugins,
     rules: baseRules,
     settings: baseSettings,
   },
 
   {
+    files: ['src/control/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.es2025 },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'ban-types-in-stage': asPlugin(banTypesInStage),
+    },
+    rules: {
+      'ban-types-in-stage/ban-types-in-stage': ['error', {
+        bannedPaths: ['typed-factorio/settings', 'typed-factorio/prototype'],
+        currentStage: 'control',
+      }],
+    },
+  },
+  {
+    files: ['src/data/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.es2025 },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'ban-types-in-stage': asPlugin(banTypesInStage),
+    },
+    rules: {
+      'ban-types-in-stage/ban-types-in-stage': ['error', {
+        bannedPaths: ['typed-factorio/control', 'typed-factorio/settings'],
+        currentStage: 'data',
+      }],
+    },
+  },
+  {
+    files: ['src/settings/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.es2025 },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'ban-types-in-stage': asPlugin(banTypesInStage),
+    },
+    rules: {
+      'ban-types-in-stage/ban-types-in-stage': ['error', {
+        bannedPaths: ['typed-factorio/control', 'typed-factorio/data'],
+        currentStage: 'settings',
+      }],
+    },
+  },
 
-    /*
-     * Factorio entry points.
-     * Do not remove this block!
-     */
+  {
+    files: ['src/shared/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.es2025 },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'ban-types-in-stage': asPlugin(banTypesInStage),
+    },
+    rules: {
+      'ban-types-in-stage/ban-types-in-stage': ['error', {
+        bannedPaths: ['typed-factorio/settings', 'typed-factorio/prototype', 'typed-factorio/data'],
+        currentStage: 'none',
+      }],
+    },
+  },
+  {
+    files: ['src/*.ts'],
+    languageOptions: {
+      globals: { ...globals.es2025 },
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        project: './tsconfig.json',
+        sourceType: 'module',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: {
+      'ban-types-in-stage': asPlugin(banTypesInStage),
+    },
+    rules: {
+      'ban-types-in-stage/ban-types-in-stage': ['error', {
+        bannedPaths: ['typed-factorio/settings', 'typed-factorio/prototype', 'typed-factorio/data'],
+        currentStage: 'none - use files in their respective stage folders',
+      }],
+      'import-x/no-internal-modules': 'off',
+      'import-x/no-unassigned-import': 'off',
+    },
+  },
+
+  {
+    //  Factorio entry points.
+    //  Do not remove this block!
     files: [
       'src/control/control.ts',
       'src/data/data.ts',
@@ -1596,12 +1682,9 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
       'src/settings/settings-final-fixes.ts',
     ],
     rules: {
-      ...baseRules,
       'unicorn/no-empty-file': 'off',
     },
   },
-
-  /* Configuration for tools directory */
   {
     files: ['tools/**/*.ts'],
     languageOptions: {
@@ -1665,7 +1748,7 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
   },
 
   {
-    files: ['eslint.config.ts'],
+    files: ['eslint.config.ts', 'eslint-custom-rules/**/*.ts'],
     languageOptions: {
       globals: {
         ...globals.node,
@@ -1682,7 +1765,7 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
     plugins: basePlugins,
     rules: {
       ...baseRules,
-      // eslint-disable-next-line unicorn/no-useless-spread -- Keep these together because they aren't prefixed
+      // eslint-disable-next-line unicorn/no-useless-spread -- Keep these together
       ...{
         'max-lines': 'off',
         'no-console': 'off',
@@ -1705,6 +1788,7 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
           peerDependencies: true,
         },
       ],
+      'import-x/no-internal-modules': 'off',
       'import-x/no-nodejs-modules': 'off',
       'misc/max-identifier-blocks': 'off',
       'n/no-extraneous-import': 'off',
