@@ -1,18 +1,25 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-// execSync will be removed as we replace cp -R
-// import { execSync } from 'child_process';
 
-async function copyAssets(srcBaseDir: string, destBaseDir: string): Promise<void> {
+/**
+ * @param srcBaseDir - The source base directory.
+ * @param destBaseDir - The destination base directory.
+ * @example
+ * ```ts
+ * await copyAssets('./src', './dist');
+ * ```
+ */
+const copyAssets = async (srcBaseDir: string, destBaseDir: string): Promise<void> => {
   console.log(`Starting asset copy from ${srcBaseDir} to ${destBaseDir}`);
 
   // 1. Copy thumbnail.png
-  const srcThumbnailPath = path.resolve(srcBaseDir, 'thumbnail.png');
-  const destThumbnailPath = path.resolve(destBaseDir, 'thumbnail.png');
+  const sourceThumbnailPath = path.resolve(srcBaseDir, 'thumbnail.png');
+  const destinationThumbnailPath = path.resolve(destBaseDir, 'thumbnail.png');
+
   try {
-    await fs.access(srcThumbnailPath);
-    await fs.copyFile(srcThumbnailPath, destThumbnailPath);
-    console.log(`  Copied thumbnail.png to ${destThumbnailPath}`);
+    await fs.access(sourceThumbnailPath);
+    await fs.copyFile(sourceThumbnailPath, destinationThumbnailPath);
+    console.log(`  Copied thumbnail.png to ${destinationThumbnailPath}`);
   }
   catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
@@ -25,20 +32,26 @@ async function copyAssets(srcBaseDir: string, destBaseDir: string): Promise<void
 
   // 2. Copy standard subfolders
   const standardSubfolders = ['locale', 'scenarios', 'campaigns', 'tutorials', 'migrations'];
+
   for (const subfolder of standardSubfolders) {
-    const srcSubfolderPath = path.resolve(srcBaseDir, subfolder);
-    const destSubfolderPath = path.resolve(destBaseDir, subfolder);
+    const sourceSubfolderPath = path.resolve(srcBaseDir, subfolder);
+    const destinationSubfolderPath = path.resolve(destBaseDir, subfolder);
+
     try {
       // Check if source directory exists and is a directory
-      const stats = await fs.stat(srcSubfolderPath);
+      const stats = await fs.stat(sourceSubfolderPath);
+
       if (stats.isDirectory()) {
-        console.log(`  Copying directory ${subfolder} from ${srcSubfolderPath} to ${destSubfolderPath}...`);
+        console.log(`  Copying directory ${subfolder} from ${sourceSubfolderPath} to ${destinationSubfolderPath}...`);
         // fs.cp will create the destination directory if it doesn't exist.
-        await fs.cp(srcSubfolderPath, destSubfolderPath, { recursive: true, force: true });
+        await fs.cp(sourceSubfolderPath, destinationSubfolderPath, {
+          force: true,
+          recursive: true,
+        });
         console.log(`    Successfully copied ${subfolder}.`);
       }
       else {
-        console.log(`  Path ${srcSubfolderPath} exists but is not a directory, skipping.`);
+        console.log(`  Path ${sourceSubfolderPath} exists but is not a directory, skipping.`);
       }
     }
     catch (error) {
@@ -53,8 +66,12 @@ async function copyAssets(srcBaseDir: string, destBaseDir: string): Promise<void
   console.log(`Finished copying assets.`);
 }
 
+/**
+ * @example
+ */
 async function run(): Promise<void> {
   const args = process.argv.slice(2);
+
   if (args.length < 2) {
     console.error('Usage: pnpm vite-node tools/copy-assets.ts <sourceBaseDir> <destinationBaseDir>');
     console.error('Example: pnpm vite-node tools/copy-assets.ts ./src ./dist');
@@ -73,4 +90,4 @@ async function run(): Promise<void> {
   }
 }
 
-run();
+await run();

@@ -5,7 +5,7 @@
     "lib": ["ESNext"],
     "moduleResolution": "Node",
     "strict": true,
-    "outDir": "./dist",
+    "outDir": "./staging",
     "erasableSyntaxOnly": true,
     "allowJs": false,
     "exactOptionalPropertyTypes": true,
@@ -19,10 +19,10 @@
       "typed-factorio/runtime"
     ],
     "paths": {
-      "@shared/*": ["shared/*"],
-      "@data/*": ["data/*"],
-      "@control/*": ["control/*"],
-      "@settings/*": ["settings/*"]
+      "$shared/*": ["shared/*"],
+      "$data/*": ["data/*"],
+      "$control/*": ["control/*"],
+      "$settings/*": ["settings/*"]
     },
     "noErrorTruncation": true,
     "verbatimModuleSyntax": true,

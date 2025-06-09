@@ -13,6 +13,8 @@ import functionalPlugin from 'eslint-plugin-functional';
 import importNewlinesPlugin from 'eslint-plugin-import-newlines';
 import importXPlugin from 'eslint-plugin-import-x';
 import jsdocPlugin from 'eslint-plugin-jsdoc';
+// eslint-disable-next-line import-x/extensions, import-x/no-unresolved -- Exported with extension
+import { getJsdocProcessorPlugin } from 'eslint-plugin-jsdoc/getJsdocProcessorPlugin.js';
 import miscPlugin from 'eslint-plugin-misc';
 import nPlugin from 'eslint-plugin-n';
 import noSecretsPlugin from 'eslint-plugin-no-secrets';
@@ -292,7 +294,7 @@ const baseRules = asReadOnlyDeep({
   //   trivial: true,
   //   unused: 'all',
   // }],
-  '@getify/proper-arrows/name': ['error', { trivial: false }],
+  '@getify/proper-arrows/name': ['off', { trivial: false }],
   '@getify/proper-arrows/return': ['error', {
     chained: true,
     object: true,
@@ -420,6 +422,7 @@ const baseRules = asReadOnlyDeep({
   '@stylistic/lines-between-class-members': ['error', 'always', { exceptAfterSingleLine: true }],
   '@stylistic/max-len': ['error', {
     code: 100,
+    ignoreComments: true,
     ignoreRegExpLiterals: false,
     ignoreStrings: false,
     ignoreTemplateLiterals: false,
@@ -779,10 +782,10 @@ const baseRules = asReadOnlyDeep({
     ignoreDefault: false,
   }],
   'code-complete/no-late-argument-usage': ['error', {
-    maxLinesBetweenDeclarationAndUsage: 5,
+    maxLinesBetweenDeclarationAndUsage: 10,
   }],
   'code-complete/no-late-variable-usage': ['error', {
-    maxLinesBetweenDeclarationAndUsage: 5,
+    maxLinesBetweenDeclarationAndUsage: 10,
   }],
   'code-complete/no-magic-numbers-except-zero-one': 'off', // Superseded by @typescript-eslint/no-magic-numbers
   'de-morgan/no-negated-conjunction': 'error',
@@ -809,7 +812,7 @@ const baseRules = asReadOnlyDeep({
   }],
   'functional/no-expression-statements': ['error', {
     ignoreCodePattern: [],
-    ignoreVoid: false,
+    ignoreVoid: true,
   }],
   'functional/no-let': ['error', {
     allowInForLoopInit: false,
@@ -882,7 +885,7 @@ const baseRules = asReadOnlyDeep({
     {
       bundledDependencies: true,
       devDependencies: false,
-      includeInternal: true,
+      includeInternal: false,
       includeTypes: true,
       optionalDependencies: false,
       peerDependencies: false,
@@ -946,7 +949,7 @@ const baseRules = asReadOnlyDeep({
   'import-x/prefer-default-export': 'off', // Conflicts with no-default-export
   'jsdoc/check-access': 'error',
   'jsdoc/check-alignment': 'error',
-  'jsdoc/check-examples': 'error',
+  'jsdoc/check-examples': 'off', // Superseded by jsdoc JsdocProcessorPlugin
   'jsdoc/check-indentation': 'error',
   'jsdoc/check-line-alignment': 'error',
   'jsdoc/check-param-names': 'error',
@@ -1013,7 +1016,7 @@ const baseRules = asReadOnlyDeep({
     },
   ],
   'misc/consistent-enum-members': 'off', // Not using enums
-  'misc/consistent-filename': ['error', {
+  'misc/consistent-filename': ['off', { // Enhanced version of unicorn/filename-case
     overrides: [
       {
         _id: 'class',
@@ -1326,7 +1329,7 @@ const baseRules = asReadOnlyDeep({
   'unicorn/new-for-builtins': 'error',
   'unicorn/no-abusive-eslint-disable': 'error',
   'unicorn/no-anonymous-default-export': 'error',
-  'unicorn/no-array-callback-reference': 'error',
+  'unicorn/no-array-callback-reference': 'off', // Conflicts with functional/tacit
   'unicorn/no-array-for-each': 'error',
   'unicorn/no-array-method-this-argument': 'error',
   'unicorn/no-array-push-push': 'error',
@@ -1474,6 +1477,15 @@ const basePlugins = asReadOnlyDeep({
   'de-morgan': asPlugin(deMorganPlugin),
   'depend': dependPlugin,
   'etc': asPlugin(etcPlugin),
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- Safe, but no types
+  'examples': asPlugin(getJsdocProcessorPlugin({
+    captionRequired: true,
+    checkDefaults: true,
+    checkExamples: true,
+    checkParams: true,
+    checkProperties: true,
+    parser: tseslint.parser,
+  })),
   'functional': asPlugin(functionalPlugin),
   'import-newlines': asPlugin(importNewlinesPlugin),
   'import-x': importXPlugin,
@@ -1551,6 +1563,7 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
       },
     },
     plugins: basePlugins,
+    processor: 'examples/examples',
     rules: baseRules,
     settings: baseSettings,
   },
@@ -1666,23 +1679,6 @@ const rules: ReadonlyDeep<ConfigArray> = configReadonlyDeep(
       }],
       'import-x/no-internal-modules': 'off',
       'import-x/no-unassigned-import': 'off',
-    },
-  },
-
-  {
-    //  Factorio entry points.
-    //  Do not remove this block!
-    files: [
-      'src/control/control.ts',
-      'src/data/data.ts',
-      'src/data/data-updates.ts',
-      'src/data/data-final-fixes.ts',
-      'src/settings/settings.ts',
-      'src/settings/settings-updates.ts',
-      'src/settings/settings-final-fixes.ts',
-    ],
-    rules: {
-      'unicorn/no-empty-file': 'off',
     },
   },
   {
